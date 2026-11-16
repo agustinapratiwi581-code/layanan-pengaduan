@@ -12,4 +12,9 @@ class KategoriPengaduan extends Model
         'nama_kategori',
         'deskripsi',
     ];
+
+    public function pengaduans()
+    {
+        return $this->hasMany(Pengaduan::class);
+    }
 }
