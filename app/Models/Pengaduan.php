@@ -4,17 +4,34 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class KategoriPengaduan extends Model
+class Pengaduan extends Model
 {
-    protected $table = 'kategori_pengaduan';
+    protected $table = 'pengaduans';
 
     protected $fillable = [
-        'nama_kategori',
-        'deskripsi',
+        'user_id',
+        'kategori_pengaduan_id',
+        'judul',
+        'isi_pengaduan',
+        'foto',
+        'status',
     ];
 
-    public function pengaduans()
+    public function kategori()
     {
-        return $this->hasMany(Pengaduan::class);
+        return $this->belongsTo(
+            KategoriPengaduan::class,
+            'kategori_pengaduan_id'
+        );
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function tanggapans()
+    {
+        return $this->hasMany(Tanggapan::class);
     }
 }
