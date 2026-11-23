@@ -1,57 +1,80 @@
+
 @extends('layouts.app')
 
 @section('title', 'Data Warga')
 @section('page-title', 'Data Warga')
 
 @section('content')
-    <div class="card border-0 shadow-sm p-4">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Data Warga</h4>
-            <a href="{{ route('warga.create') }}" class="btn btn-primary">
-                + Tambah Warga
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-3 p-md-4">
+
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+            <div>
+                <h5 class="fw-bold mb-1">Data Warga</h5>
+                <p class="text-secondary small mb-0">Kelola informasi dan identitas warga</p>
+            </div>
+            <a href="{{ route('warga.create') }}" class="btn btn-primary rounded-3 px-3">
+                <i class="bi bi-plus-lg me-1"></i> Tambah Warga
             </a>
         </div>
 
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show rounded-3">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
         @endif
 
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>No</th>
-                    <th>NIK</th>
-                    <th>Nama</th>
-                    <th>Alamat</th>
-                    <th>No. Telepon</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($wargas as $warga)
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ $warga->nik }}</td>
-                        <td>{{ $warga->nama }}</td>
-                        <td>{{ $warga->alamat }}</td>
-                        <td>{{ $warga->no_telepon }}</td>
-                        <td>
-                            <a href="{{ route('warga.edit', $warga->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                            <form action="{{ route('warga.destroy', $warga->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-danger btn-sm" onclick="return confirm('Hapus data?')">Hapus</button>
-                            </form>
-                        </td>
+                        <th class="text-secondary small">No</th>
+                        <th class="text-secondary small">NIK</th>
+                        <th class="text-secondary small">Nama</th>
+                        <th class="text-secondary small">Alamat</th>
+                        <th class="text-secondary small">No. Telepon</th>
+                        <th class="text-secondary small text-center">Aksi</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center">Belum ada data warga.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse($wargas as $warga)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $warga->nik }}</td>
+                            <td class="fw-semibold">{{ $warga->nama }}</td>
+                            <td>{{ $warga->alamat }}</td>
+                            <td>{{ $warga->no_telepon }}</td>
+                            <td class="text-center text-nowrap">
+                                <a href="{{ route('warga.edit', $warga->id) }}"
+                                   class="btn btn-sm btn-warning rounded-2">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+
+                                <form action="{{ route('warga.destroy', $warga->id) }}"
+                                      method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger rounded-2"
+                                        onclick="return confirm('Hapus data warga ini?')">
+                                        <i class="bi bi-trash"></i> Hapus
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center text-secondary py-4">
+                                Belum ada data warga.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
     </div>
+</div>
+
 @endsection
