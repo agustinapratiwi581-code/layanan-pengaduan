@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\KategoriPengaduan;
+use Illuminate\Database\Seeder;
 
 class KategoriPengaduanSeeder extends Seeder
 {
     public function run(): void
     {
         $data = [
-            ['nama_kategori' => 'Infrastruktur', 'deskripsi' => 'Pengaduan jalan dan fasilitas umum'],
-            ['nama_kategori' => 'Kebersihan', 'deskripsi' => 'Pengaduan sampah dan lingkungan'],
-            ['nama_kategori' => 'Keamanan', 'deskripsi' => 'Pengaduan gangguan keamanan'],
-            ['nama_kategori' => 'Kesehatan', 'deskripsi' => 'Pengaduan layanan kesehatan'],
-            ['nama_kategori' => 'Pelayanan Publik', 'deskripsi' => 'Pengaduan pelayanan masyarakat'],
+            ['nama_kategori' => 'Infrastruktur',     'bidang_penanggung_jawab' => 'Dinas Pekerjaan Umum'],
+            ['nama_kategori' => 'Kebersihan',        'bidang_penanggung_jawab' => 'Dinas Lingkungan Hidup'],
+            ['nama_kategori' => 'Keamanan',          'bidang_penanggung_jawab' => 'Satpol PP dan Linmas'],
+            ['nama_kategori' => 'Kesehatan',         'bidang_penanggung_jawab' => 'Dinas Kesehatan'],
+            ['nama_kategori' => 'Pelayanan Publik',  'bidang_penanggung_jawab' => 'Bagian Pelayanan Umum'],
         ];
 
         foreach ($data as $item) {

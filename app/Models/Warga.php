@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Warga extends Model
 {
-    protected $table = 'wargas';
+    protected $table = 'warga';
 
-    protected $fillable = [
-        'nik',
-        'nama',
-        'alamat',
-        'no_telepon',
-    ];
+    protected $fillable = ['nama', 'no_hp', 'alamat', 'kelurahan'];
+
+    // 1 warga punya banyak pengaduan
+    public function pengaduan()
+    {
+        return $this->hasMany(Pengaduan::class, 'warga_id');
+    }
 }

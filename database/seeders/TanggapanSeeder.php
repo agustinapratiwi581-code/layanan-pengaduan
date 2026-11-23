@@ -2,40 +2,34 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Tanggapan;
 use App\Models\Pengaduan;
+use App\Models\Tanggapan;
+use Illuminate\Database\Seeder;
 
 class TanggapanSeeder extends Seeder
 {
     public function run(): void
     {
-        $pengaduans = Pengaduan::orderBy('id')->get();
+        $pengaduan = Pengaduan::orderBy('id')->pluck('id')->values();
 
-        if ($pengaduans->count() < 10) {
-            throw new \RuntimeException(
-                'Data pengaduan belum mencukupi. Pastikan 10 pengaduan sudah tersedia.'
-            );
-        }
-
-        $dataTanggapan = [
-            'Terima kasih atas laporannya. Kami akan segera melakukan pemeriksaan.',
-            'Laporan telah diterima dan sedang ditindaklanjuti oleh petugas.',
-            'Petugas akan segera memeriksa kondisi lampu jalan tersebut.',
-            'Kami akan berkoordinasi dengan petugas kebersihan untuk menangani masalah ini.',
-            'Perbaikan fasilitas umum telah selesai dilakukan.',
-            'Laporan sudah diteruskan kepada petugas terkait untuk penanganan.',
-            'Kami akan melakukan pengecekan kebersihan lingkungan tersebut.',
-            'Kerusakan jembatan akan diperiksa oleh petugas lapangan.',
-            'Terima kasih. Lokasi pembuangan sampah telah ditangani.',
-            'Kami sedang berkoordinasi dengan pihak penyedia air bersih.',
+        // [indeks pengaduan, petugas, selisih hari dari hari ini, isi]
+        $data = [
+            [1, 'Pak Hendra', 6, 'Laporan diterima. Petugas kebersihan dijadwalkan mengangkut sampah besok pagi.'],
+            [1, 'Pak Hendra', 4, 'Pengangkutan sudah dilakukan sebagian, sisanya dikerjakan hari ini.'],
+            [2, 'Bu Rina',    5, 'Tim listrik akan memeriksa titik lampu yang mati dalam 2 hari.'],
+            [3, 'Bu Sari',    4, 'Loket tambahan sudah dibuka pada jam sibuk.'],
+            [3, 'Bu Sari',    3, 'Pelayanan sudah berjalan normal. Terima kasih atas laporannya.'],
+            [5, 'Pak Joko',   2, 'Petugas akan membersihkan saluran pada akhir pekan.'],
+            [6, 'Pak Andi',   1, 'Perbaikan atap dan lampu pos ronda telah selesai dikerjakan.'],
         ];
 
-        foreach ($pengaduans->take(10) as $index => $pengaduan) {
-            Tanggapan::updateOrCreate(
-                ['pengaduan_id' => $pengaduan->id],
-                ['isi_tanggapan' => $dataTanggapan[$index]]
-            );
+        foreach ($data as [$idx, $petugas, $hari, $isi]) {
+            Tanggapan::create([
+                'pengaduan_id'  => $pengaduan[$idx],
+                'petugas'       => $petugas,
+                'tanggal'       => now()->subDays($hari)->toDateString(),
+                'isi_tanggapan' => $isi,
+            ]);
         }
     }
 }
