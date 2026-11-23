@@ -8,13 +8,11 @@ class KategoriPengaduan extends Model
 {
     protected $table = 'kategori_pengaduan';
 
-    protected $fillable = [
-        'nama_kategori',
-        'deskripsi',
-    ];
+    protected $fillable = ['nama_kategori', 'bidang_penanggung_jawab'];
 
-    public function pengaduans()
+    // 1 kategori punya banyak pengaduan
+    public function pengaduan()
     {
-        return $this->hasMany(Pengaduan::class);
+        return $this->hasMany(Pengaduan::class, 'kategori_pengaduan_id');
     }
 }

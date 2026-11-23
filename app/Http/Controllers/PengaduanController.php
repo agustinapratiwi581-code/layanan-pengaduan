@@ -2,47 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pengaduan;
 use App\Models\KategoriPengaduan;
-use App\Models\User;
+use App\Models\Pengaduan;
+use App\Models\Warga;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PengaduanController extends Controller
 {
-    public function index()
+    private function rules(): array
     {
-        $pengaduans = Pengaduan::with(['kategori', 'user'])
-            ->latest()
+        return [
+            'warga_id'              => 'required|exists:warga,id',
+            'kategori_pengaduan_id' => 'required|exists:kategori_pengaduan,id',
+            'tanggal'               => 'required|date',
+            'judul'                 => 'required|string|max:255',
+            'isi'                   => 'required|string',
+            'status'                => 'required|in:baru,diproses,selesai',
+        ];
+    }
+
+    private function buatKodeTiket(): string
+    {
+        do {
+            $kode = 'TKT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
+        } while (Pengaduan::where('kode_tiket', $kode)->exists());
+
+        return $kode;
+    }
+
+    public function index(Request $request)
+    {
+        $q      = $request->query('q');
+        $status = $request->query('status');
+
+        // eager loading: nama warga & kategori tampil, bukan angka id
+        $pengaduan = Pengaduan::with(['warga', 'kategori'])
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($q, function ($query) use ($q) {
+                $query->where(function ($w) use ($q) {
+                    $w->where('judul', 'like', "%{$q}%")
+                      ->orWhere('kode_tiket', 'like', "%{$q}%")
+                      ->orWhereHas('warga', fn ($x) => $x->where('nama', 'like', "%{$q}%"));
+                });
+            })
+            ->latest('tanggal')
+            ->latest('id')
             ->get();
 
-        return view('pengaduan.index', compact('pengaduans'));
+        return view('pengaduan.index', compact('pengaduan', 'q', 'status'));
     }
 
     public function create()
     {
-        $kategori = KategoriPengaduan::all();
-        $users = User::all();
-
-        return view('pengaduan.create', compact('kategori', 'users'));
+        return view('pengaduan.create', [
+            'warga'    => Warga::orderBy('nama')->get(),
+            'kategori' => KategoriPengaduan::orderBy('nama_kategori')->get(),
+        ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'kategori_pengaduan_id' => 'required|exists:kategori_pengaduan,id',
-            'judul' => 'required|string|max:255',
-            'isi_pengaduan' => 'required|string',
-            'foto' => 'nullable|image|max:2048',
-            'status' => 'required|in:menunggu,diproses,selesai',
-        ]);
-
-        $data = $request->except('foto');
-
-        if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('pengaduan', 'public');
-        }
+        $data = $request->validate($this->rules());
+        $data['kode_tiket'] = $this->buatKodeTiket();
 
         Pengaduan::create($data);
 
@@ -50,36 +72,31 @@ class PengaduanController extends Controller
             ->with('success', 'Pengaduan berhasil ditambahkan.');
     }
 
+    // Tampilan khusus Tema 8: detail pengaduan + semua tanggapan berurutan
+    public function show(Pengaduan $pengaduan)
+    {
+        $pengaduan->load(['warga', 'kategori']);
+
+        $tanggapan = $pengaduan->tanggapan()
+            ->orderBy('tanggal')
+            ->orderBy('id')
+            ->get();
+
+        return view('pengaduan.show', compact('pengaduan', 'tanggapan'));
+    }
+
     public function edit(Pengaduan $pengaduan)
     {
-        $kategori = KategoriPengaduan::all();
-        $users = User::all();
-
-        return view('pengaduan.edit', compact('pengaduan', 'kategori', 'users'));
+        return view('pengaduan.edit', [
+            'pengaduan' => $pengaduan,
+            'warga'     => Warga::orderBy('nama')->get(),
+            'kategori'  => KategoriPengaduan::orderBy('nama_kategori')->get(),
+        ]);
     }
 
     public function update(Request $request, Pengaduan $pengaduan)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'kategori_pengaduan_id' => 'required|exists:kategori_pengaduan,id',
-            'judul' => 'required|string|max:255',
-            'isi_pengaduan' => 'required|string',
-            'foto' => 'nullable|image|max:2048',
-            'status' => 'required|in:menunggu,diproses,selesai',
-        ]);
-
-        $data = $request->except('foto');
-
-        if ($request->hasFile('foto')) {
-            if ($pengaduan->foto) {
-                Storage::disk('public')->delete($pengaduan->foto);
-            }
-
-            $data['foto'] = $request->file('foto')->store('pengaduan', 'public');
-        }
-
-        $pengaduan->update($data);
+        $pengaduan->update($request->validate($this->rules()));
 
         return redirect()->route('pengaduan.index')
             ->with('success', 'Pengaduan berhasil diperbarui.');
@@ -87,10 +104,6 @@ class PengaduanController extends Controller
 
     public function destroy(Pengaduan $pengaduan)
     {
-        if ($pengaduan->foto) {
-            Storage::disk('public')->delete($pengaduan->foto);
-        }
-
         $pengaduan->delete();
 
         return redirect()->route('pengaduan.index')

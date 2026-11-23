@@ -6,32 +6,35 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pengaduan extends Model
 {
-    protected $table = 'pengaduans';
+    protected $table = 'pengaduan';
 
     protected $fillable = [
-        'user_id',
+        'warga_id',
         'kategori_pengaduan_id',
+        'kode_tiket',
+        'tanggal',
         'judul',
-        'isi_pengaduan',
-        'foto',
+        'isi',
         'status',
     ];
 
+    protected $casts = ['tanggal' => 'date'];
+
+    // pengaduan milik 1 warga
+    public function warga()
+    {
+        return $this->belongsTo(Warga::class, 'warga_id');
+    }
+
+    // pengaduan milik 1 kategori
     public function kategori()
     {
-        return $this->belongsTo(
-            KategoriPengaduan::class,
-            'kategori_pengaduan_id'
-        );
+        return $this->belongsTo(KategoriPengaduan::class, 'kategori_pengaduan_id');
     }
 
-    public function user()
+    // 1 pengaduan punya banyak tanggapan
+    public function tanggapan()
     {
-        return $this->belongsTo(User::class);
-    }
-
-    public function tanggapans()
-    {
-        return $this->hasMany(Tanggapan::class);
+        return $this->hasMany(Tanggapan::class, 'pengaduan_id');
     }
 }

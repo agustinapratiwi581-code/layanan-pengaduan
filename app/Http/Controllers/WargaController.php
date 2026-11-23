@@ -7,10 +7,32 @@ use Illuminate\Http\Request;
 
 class WargaController extends Controller
 {
-    public function index()
+    private function rules(): array
     {
-        $wargas = Warga::latest()->get();
-        return view('warga.index', compact('wargas'));
+        return [
+            'nama'      => 'required|string|max:255',
+            'no_hp'     => 'required|string|max:20',
+            'alamat'    => 'required|string',
+            'kelurahan' => 'required|string|max:255',
+        ];
+    }
+
+    public function index(Request $request)
+    {
+        $q = $request->query('q');
+
+        $warga = Warga::withCount('pengaduan')
+            ->when($q, function ($query) use ($q) {
+                $query->where(function ($w) use ($q) {
+                    $w->where('nama', 'like', "%{$q}%")
+                      ->orWhere('kelurahan', 'like', "%{$q}%")
+                      ->orWhere('no_hp', 'like', "%{$q}%");
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('warga.index', compact('warga', 'q'));
     }
 
     public function create()
@@ -20,14 +42,7 @@ class WargaController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nik' => 'required|unique:wargas,nik',
-            'nama' => 'required',
-            'alamat' => 'required',
-            'no_telepon' => 'required',
-        ]);
-
-        Warga::create($request->all());
+        Warga::create($request->validate($this->rules()));
 
         return redirect()->route('warga.index')
             ->with('success', 'Data warga berhasil ditambahkan.');
@@ -40,14 +55,7 @@ class WargaController extends Controller
 
     public function update(Request $request, Warga $warga)
     {
-        $request->validate([
-            'nik' => 'required|unique:wargas,nik,' . $warga->id,
-            'nama' => 'required',
-            'alamat' => 'required',
-            'no_telepon' => 'required',
-        ]);
-
-        $warga->update($request->all());
+        $warga->update($request->validate($this->rules()));
 
         return redirect()->route('warga.index')
             ->with('success', 'Data warga berhasil diperbarui.');
