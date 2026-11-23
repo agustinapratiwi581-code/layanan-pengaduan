@@ -88,7 +88,9 @@
             Kategori Pengaduan
         </a>
 
-        <a href="#" onclick="return false;">Data Warga</a>
+        <a href="{{ route('warga.index') }}" class="nav-link">
+            Data Warga
+        </a>
         <a href="{{ route('pengaduan.index') }}" class="{{ request()->routeIs('pengaduan.*') ? 'active' : '' }}">
             Data Pengaduan
         </a>
